@@ -1,0 +1,230 @@
+韩茹：
+	tel：13910439137
+
+
+一：授课模式
+	1.直播+录播+作业+答疑+答辩
+
+
+	2.直播：
+		主要讲核心思想
+
+	3.录播：
+
+
+	4.作业：
+
+
+	5.答疑：
+
+
+	6.答辩：
+
+
+
+	之前的内容：
+		golang基础：
+			A：结构体，
+			B：方法，函数
+			C：接口，
+			D：指针，
+			E：参数传递(值类型，引用类型)，内存分析。。。
+
+			F：数组，切片
+				数组：
+					定长数组：切片
+					不定长数组：切片
+
+			G：map：用法
+				键值对。。。。
+
+
+		密码学：
+			sha256，ripemd160...
+
+
+12次：
+	第一次：作业：
+		扫清之前的语法障碍
+
+
+	课程介绍：
+		A：区块结构，区块链的结构。。。
+		B：数据库
+		C：CLI，
+		D：UTXO模型
+			未花费的交易输出（Unspent Transaction Output）
+
+			手动计算，通过代码实现。。。
+
+		E：钱包地址：
+			下载bitcoin钱包
+			存储私钥，公钥
+			。。。。。。
+
+		F：代码优化
+			UTXOSet：UTXO集
+
+		G：Merkle树。。。
+
+		H：网络
+			p2p。。。
+
+		I：虚拟机
+
+
+
+	公链的项目：公链的流程，核心思想。核心内容。。
+		大家可以优化。。。。
+
+
+
+
+
+二：学分考核制度
+	6800学费
+	评分：达标，返5440
+
+
+	注意事项：
+		1.禁止旷课
+		2.禁止抄袭作业
+		3.提交作业的时间
+			周一晚上直播
+				周二看录播
+				周三中午12：00之前提交
+
+			周三晚上直播：
+				周五中午12：00之前提交
+
+			周五晚上直播：
+				周六晚上20：00前提交
+
+			周日上午直播：
+				早晨9：00上课
+
+				周一中午12：00之前提交
+
+
+		4.公布每个人的学分，以示公平
+
+	ps：直播(回放) + 录播  == 学习公链项目
+
+
+三：课堂的学习气氛
+	13人
+		班长，学委
+
+	11人
+		分组
+
+
+简单 的自我介绍：
+	A：真实姓名：微信群里实名
+	B：从事的工作
+	C：来自哪里
+
+
+
+
+评分表：
+	姓名，性别，考勤，作业，答辩，总分。。
+
+
+
+
+
+四：作业的提交
+	1.github上提交作业
+	2.先注册用户名：
+		以王二狗为例：
+			邮箱：guoqiang810410@163.com
+			用户名：wangergou1314
+
+	3.我发送邀请，你加入我的组织：kongyixueyuanpublicchian2
+		学生登录邮箱确认，再登录github账户，加入。
+
+	4.新建一个项目：
+		Owner：kongyixueyuanpublicchain2/
+		Repository name:wangergou //填写自己的真实姓名的汉语拼音
+
+
+	5.第一次提交作业：
+		进行配置
+
+		A：先在自己的电脑上，创建一个文件夹。用于存储github上要提交的作业
+		B：打开终端：使用命令提交作业
+			第一次提交作业：以提交一个README.md为例。
+			step1：
+				echo "# wangergou" >> README.md
+			step2：
+				git init
+				git add README.md
+
+			step3：
+				git commit -m "first commit"
+
+首次提交的提示信息：
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+
+ 			step4：
+ 			git remote add origin https://github.com/kongyixueyuanpublicchian2/wangergou.git
+
+ 			step5：
+ 			git push -u origin master
+
+	6.之后的作业提交：
+
+
+		将自己的作业，粘贴到指定的目录下
+		执行：打开终端，进入指定的目录下
+			git add *
+			git commit -m "提交说明：第一次提交"
+			git push -u origin master
+
+
+			终端命令：
+				cd 进入一个目录
+				cd .. 退出
+				cd 
+
+
+总结：
+1.授课模式
+	直播 + 录播 + 作业 + 答疑 + 答辩
+
+2.作业
+
+3.评分说明：
+	
+4.课表的时间：
+	周三，周五：晚上8点-10点
+	周日：上午9点-11点
+
+	下周：
+		周一，周三，周五：晚上8点-10点
+		周日：上午9点-11点
+
+	下下周：
+		周一，周三：晚上8点-10点
+		周日：上午9点-11点
+			 下午。。。
+
+
+学分考核制度
+		1.学分总分100分，总学分大于等于90份者，返回学费80%
+		2.本次课程一共12次出勤，可允许两次事假，这两次事假不扣学分，每超出一次事假扣除学分2分。
+		3.禁止旷课，未经请假，旷课者，旷课一次扣除学分5分。
+		4.进制遭罪，未经请假，早退一次扣除学分2分。
+		5.本次课程一共10次作业，需按时完成作业并将作业提交到github上，未按时提交作业者每次扣除学分2分，提交作业未通过审核者，每次扣除学分1分。
+		6.毕业答辩，随机从10个问题中抽取两个问题提问，答错一题，扣除2分。
