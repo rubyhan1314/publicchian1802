@@ -1,0 +1,270 @@
+一：了解区块链
+2008年美国的金融危机。。
+
+
+区块：
+	时间戳
+	Hash
+	数据：-->交易
+	Merkle树
+	Nonce：随机数
+	前一个区块的hash
+	Height 高度
+
+
+	hash--->目标hash
+
+
+	比特币：
+		第一个区块，也叫创世区块。 0
+
+
+创世区块：高度0
+区块1：高度1
+区块2：高度2
+。。。。
+
+区块n：高度n
+
+
+	区块链：
+
+
+
+挖矿--->hash
+	sha256：256位
+	ripemd160
+
+
+	数据--->hash算法，得到hash值
+
+
+
+计算机中的单位：
+位bit：1个0或1。
+
+字节byte：8个bit
+
+16进制表示：
+	0-9，A，B,C,D,E,F
+
+	1111
+
+16进制：4个bit
+
+
+	sha256：hash算法
+		长度：
+			bit：256
+			byte：32
+			16进制：64
+
+	ripemd160：hash算法
+		长度：bit：160
+			byte：20
+			16进制：40
+
+
+
+
+hash算法：不可逆
+	helloworld--->hash
+
+
+前面有4个区块
+5个区块
+
+
+
+
+比特币：
+	2100万个
+	2009年产生的第一个区块：创世区块
+
+		每隔10分钟产生一个区块，每当产生21万个区块，奖励就减半
+		奖励50个
+		25-->12.5
+		...
+
+
+
+挖矿：
+	不停的计算区块头的hash值。不断的修改随机数：nonce：1,2,3...
+
+	找到一个hash，
+
+
+step1:
+Block的结构体：
+	Heigh 高度
+	PrevHash 上一个区块的hash
+	TimeStamp
+	Data []byte 
+	Hash 
+
+
+step2:功能函数
+	NewBlock()--->*Block
+
+
+step3：给区块的设置setHash() ---->pow
+
+step4：创建创世区块：
+	CreateGenesisBlock()
+
+
+
+step5:区块链：
+
+
+
+
+
+二：共识机制：PoW
+算力：
+
+hash：256bit
+	--->16进制：64
+
+
+挖矿：规定难度系数：16，16个0--->256bit
+
+	--->16进制：4个
+
+
+
+目标hash：
+	0000 0000 0000 0000 10101010101011000101
+
+0000 0000 
+
+
+0010 0000
+
+0000 0001
+
+左移：前面有2个0，左移了6位。
+	总共：8位
+	前面的0的个数：2个
+		左移：8-2
+
+0010 0000
+
+
+256bit
+
+16个0
+
+0000 0000 0000 0000 1000 0000 ......... 1
+
+左移：256-16
+
+
+
+第五个区块的hash
+height：4
+timestamp：s
+交易数据："send 100rmb to wangergou"
+上一个区块的hash：固定
+
+Nonce：1-->2-->3......nonce
+
+---->hash-->hash
+
+
+
+sha256
+
+
+
+
+
+
+
+三：PoS，DPos...
+
+
+
+总结：
+1.搭建区块链的基本原型
+	Block区块：
+		Height 高度
+		TimeStamp 时间戳
+		Data 交易数据 []byte, string
+		PrevHash 上一个区块的hash
+		Hash 自己的hash
+		Nonce 随机数
+
+	BlockChain区块链：
+		Blocks []*Block
+
+2.功能方法
+	NewBlock()--->Block
+	CreateGensisBlock()-->Block
+
+
+	CreateBlockChainWithGensisBlock()-->BlockChain
+	AddBlockToBlockChain()-->
+
+
+3.PoW:工作量证明
+	Proof Of Work
+
+	pow对象：
+		block
+		target -->目标hash
+			0的数量
+
+
+
+		通过数值的左移--->256-targetbit
+
+
+	Run()--->
+		根据修改nonce的值，产生hash，实际hash 小于 目标hash。
+
+
+		block的属性信息+nonce ---> []byte
+
+		sha256的hash计算--->hash值
+
+		hash值和目标hash比较
+			实际hash小，挖矿成功
+
+
+4.作业：第二次
+	一：项目代码
+		1.构建区块链的基本原型
+			A：创建区块的结构
+			B：创建区块链的结构
+			C：能够创建创世区块
+			D：能够在区块链中添加区块
+
+		2.在项目中，添加pow
+
+		以上的内容，要求diamante能够运行跑通。。
+
+
+	规定：
+		Block
+		比如王二狗的作业：
+		创建的结构体的名字，函数的名字，字段属性的名字。。。
+		BlockEG
+			HeightEG
+
+		AddBlockToBlockChainEG()
+
+
+
+	二：文档
+		1.写文档(或代码实现)，对比pow，pos，dpos
+
+
+
+	三：作业提交时间：本周五中午12：00前。
+
+
+
+
+
+
