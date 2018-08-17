@@ -1,0 +1,279 @@
+上节课回顾：
+	1.区块：
+		Height
+		PrevHash
+		Hash
+		TimeStamp
+		Nonce
+		Data
+
+
+	2.区块链：
+		BlockChain--->[]Block
+
+		创世区块：
+
+
+	PoW：挖矿---->hash
+		nonce--->实际hash，小于目标hash。
+
+
+
+
+本堂课内容：
+1.持久化
+	persistence
+
+挖矿(pow)--->创建区块--->添加到区块链上。
+
+
+Block--->struct结构体对象
+	内存中
+
+BlockChain--->
+	[]Block
+
+	内存中
+
+
+	内存中：瞬时数据。
+
+	block1,block2,block3,block4--->blockchain
+
+
+持久化：
+	文件存储
+	数据库存储
+		关系型：二维表
+
+		数据库(database)--->数据表(table)--->
+			行，字段，属性
+			列：数据，记录
+
+			stuno	name	age	score
+			1001	张三		18	88
+			1002	李四		20	100
+			。。。
+
+	区块链中：
+		KV数据库：key，value
+
+		存储键值对
+			map：存储结构：
+				key-value的键值对
+
+	boltDB数据库
+		存储特点：
+			1.采用kv存储：key-value键值对
+			2.数据类型，[]byte
+			3.bucket(桶)
+
+		boltDB-->bucket-->k,v
+
+
+	程序：存储数据
+		创建一个boltDB的数据库文件：xxx.db
+		创建bucket桶：
+
+			区块的数据：
+
+			key：区块的hash
+			value：整个区块：block--->对象
+
+
+			对象的序列化和反序列化
+				对象的序列化：
+					将对象，转为一系列的byte数值--->[]byte
+
+
+				对象的反序列化：
+					将[]byte，转为对象
+					
+
+my.db
+	key     1value
+	Hash1    block1
+	hash2    block2
+	hash3    block3
+	.....
+
+	"l"		最后一个区块的hash
+			hash3
+
+
+读取数据
+	根据l-->hash3
+	根据hash3-->block3：height，hash，。。。prevHash
+	根据block3.prevHash-->hash2
+		--->block2
+	根据hash1-->block1
+		创世区块：prevhash-->0
+
+
+
+
+修改之前的程序：
+	step1：先将block区块，提供方法，进行序列化，反序列化
+
+	step2：修改blockchain的结构：
+			Tip 最新区块的hash，
+			DB
+
+	step3：修改CreateBlockChainWithGenesisBlock()
+		A：判断数据库是否存在，如果存在，从数据库中获取l
+		B：如果不存在，创建创世区块，
+
+	step4：修改AddBlockToBlockChain()
+		A：打开数据库，获取最后一个区块：lastBlock
+		B：根据lastBlock的数据，创建newBlock
+		C：将newBlock进行数据库存储
+		D：更新l，tip的值
+
+	step5：添加打印方法：遍历区块链的数据库中的所有的区块
+		printChain()
+			Next()-->block
+				打印block的信息
+
+			判断block.PrevHash-->0,创世区块，结束遍历
+
+				
+
+2.CLI
+	Command Line Interface
+
+	命令行接口
+
+
+
+	func printUsage() {
+		fmt.Println("Usage:")
+		fmt.Println("\tcreateblockchain -data DATA -- 创建创世区块")
+		fmt.Println("\taddblock -data DATA -- 添加区块")
+		fmt.Println("\tprintchain -- 打印区块")
+	}
+
+go build -o bc main.go
+	-->bc可执行文件
+
+
+./bc 
+
+./bc createblockchain -data "Genesisblock"
+
+./bc printchain
+	执行打印区块
+
+./bc addblock -data "send100 to wangergou"
+
+printchain 命令，不需要参数
+
+createblockchain，addblock 需要参数
+
+
+CreateBlockChainWithGenesisBlock（）
+	仅创建创世区块：
+		数据库存在，直接返回
+
+		数据库不存在，创建创世区块，并存储
+
+
+
+GetBlockChainObject()--->Blockchain
+
+
+printchain()--->blockchain
+
+
+
+总结：
+1.创建创世区块()CreateBlockChainWithGenesisBlock（）
+2.添加一个区块到区块链中()AddBlockToBlockChain()
+
+
+
+
+1.持久化存储数据：
+	A：boltDB的数据库的特点
+		map-->key,value
+
+		存储特点：
+			a)KV数据库
+			b)存储的数据类型：[]byte
+			c)数据库(文件)-->bucket-->key,value
+
+	B：操作方法：
+		step1：安装
+				go get "github.com/boltdb/bolt"
+
+		step2：打开数据库
+				db,err:=bolt.Open(数据库名，数据库不存在创建数据库文件的权限：0600，nil)
+
+				defer db.Close()
+
+		step3：通过db对象操作数据库
+			增删改：db.Update()
+			查：db.View()
+
+		step4：数据库 的常用方法
+			func(tx *bolt.Tx) error
+
+			tx.CreateBucket()-->b
+			tx.Bucket()-->b
+
+			b.Put(key,value)
+			b.Get(key)-->value
+
+
+2.修改程序：
+	A：Block对象进行序列化和反序列化
+		BlockChain-->Block
+
+	B：修改CreateBlockChainWithGenesisBlock()
+
+	C：修改AddBlockToBlockChain()
+		将新区块，存入到数据库
+
+	D：添加printChain()
+		打印所有的区块数据
+
+	E：CLI：
+		flag包
+		终端命令上提供对应的功能：
+		./bc addblock -data
+			执行对应的添加区块
+		./bc printchain
+			执行打印区块
+		./bc createblockchian -data
+			创建区块链
+
+	F：新增getBlockchainObject()-->blockchain
+
+
+golang的基本语法
+	文件的读写
+
+
+作业：
+	代码的作业：
+		在昨天的代码上，进一步的添加功能
+		A：将block对象持久化
+
+		B：添加CLI的功能
+			addblock
+			createblockchian
+			printchain
+
+		要求：结构体， 函数，方法。。。末尾追加自己名字的缩写
+
+
+提交时间：8.18明天晚上8点前。
+
+
+
+
+
+
+
+
+
+
