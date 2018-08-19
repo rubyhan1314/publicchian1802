@@ -1,0 +1,511 @@
+上节课回顾：
+	1.持久化
+		区块进行持久化的存储。
+		A：安装数据库：boltDB
+			go get "github.com/boltdb/bolt"
+
+		B：数据库的存储特点
+			KV数据库：存储的是键值对
+				key--->value
+
+			和map相比：
+
+			文件存储：数据库---->程序中的一个文件：xxx.db
+
+			存储的数据的类型：[]byte
+
+			key：block的hash
+			value：block的序列化后的数据
+
+			l：最后一个区块的hash
+
+		C：修改代码，添加数据库的操作
+			序列化和反序列化：block，
+			blockchain：tip，db对象
+			创建区块链：createblockchainwithgensisblock()
+				判断本地的数据库文件是否存在
+					不存在：创建创世区块-->
+
+
+					存在：直接结束方法
+
+			获取blockchain对象：getBlockchainObject()-->blockchain
+				判断本地的数据库文件是否存在
+					存在，读取数据库：获取l对应的数值
+					不存在，没有blockchain，nil
+
+			修改：addblocktoblockchain()
+				先读取本地的数据库：最后一个区块的信息，反序列化
+				lastBlock：Height，hash
+				根据参数，和最后一个区块的信息。创建newblock对象
+					存入到数据库中：
+						hash，newblock进行序列化后
+
+	2.CLI命令行工具
+		./bc createblockchain -data DATA
+		./bc addblock -data DATA
+		./bc printchain 
+命令行的命令
+createblockchain
+addblock
+printchain
+
+执行某个命令需要的参数
+-data DATA
+
+本堂课的内容：
+交易：Transaction
+	
+	区块链技术--->区块--->
+					区块头
+					自己的hash
+					交易列表
+
+
+	区块链执行的步骤原理：
+		节点：
+			矿工节点：专门挖矿，创建区块
+
+			钱包节点：转账
+
+			全节点：
+
+	钱包节点：通过转账---> 创建出一笔交易
+
+		交易：张三--->王二狗：10元
+				账户：地址
+				账户：地址
+
+	交易先发送给全节点：
+		发送给其他的节点：矿工节点
+
+	矿工节点：
+		接收到了交易，存入到本地的一个交易池里。
+
+		矿工开始进行挖矿，如果挖矿成功：
+
+		新区块，发送给全节点，进行区块验证。全网广播。。
+
+	block1，block2，block3,block4。。。
+
+	
+
+程序：
+	在cli中：修改一个功能：
+		addblock -data 
+
+		转账，创建交易，挖矿产生区块，存入到数据库中
+
+
+		utxo：Unspent transaction Output
+
+input
+output
+
+
+交易：
+	交易的类型：
+		CoinBase交易：没有输入
+			挖矿，产生区块：奖励
+
+		转账产生的普通交易：
+			转账：
+				谁转：账户，王二狗
+				转给谁：账户，李小花
+
+
+
+矿工节点：
+	挖矿：
+		奖励：50bth--25bth--12.5.。。。
+		交易的手续费：
+
+
+Transaction：交易
+	TxID，交易ID，或者叫交易Hash
+	Input：[]Input
+	Output：[]Output
+
+	有合法的来源，来源Input，转账
+
+	花费的在哪，Output，
+		比特币种规定的花费：不能轻松花费，需要证明这笔钱是属于你的。
+
+		每个输出：你能够花费的钱
+			输出表示，可以可能花费的钱。
+			Output：两种状态：已经花费，未花费。
+				将钱转给其余的人。需要锁定，保证不能别人随便使用
+
+				输出的时候，通过输出脚本。又叫做锁定脚本，公钥，scriptpubkey
+
+		每个输入：代表的是转账的花费
+			有解锁脚本。
+			一个交易的输入，一定是有一个输出和他进行对应。
+
+
+
+
+Transaction：
+	txid
+	vins []intput
+	vouts []output
+
+
+output:
+	Value int64输出可以使用的的金额
+	锁定脚本：scriptpubkey， 用户名
+
+
+output：
+	value：10
+	用户名：王二狗
+
+
+
+王二狗，转账给李小花：5
+	input{txid，index，王二狗}//和某个未花费的output对应
+	output{5，李小花}//转账后的钱的去向
+	output{5，王二狗}//找零
+
+
+李小花给rose进行转账：3个
+	input{}
+
+
+
+	转账：
+		二狗：
+			工行的：Output(unspent)
+				1000
+
+			招商：Output(spent)
+				5000
+
+			北京银行：Output(spent)
+				3000
+
+
+		rose给钱：工行：
+
+		我妈我钱：招商：
+
+		公司的工资：北京银行
+
+			看中一辆车：7000，转账jack
+			二狗，转给jack：7000
+			Input{招商：二狗}
+			Input{北京银行，二狗}
+			Output{7000，jack}
+			Output{1000，二狗}
+
+
+在昨天的代码上，进行修改：添加交易
+1.添加交易
+	step1:添加Transaction的结构体：
+		TxID
+		//输入
+		//输出
+	step2:修改Block的结构体
+		Data-->Txs []*Transaction
+
+	step3:修改创建区块的方法：
+		CreateGenesisBlock()
+		NewBlock()
+
+	step4：修改pow中，prepareData()
+		pow.Block.HashTransactions()
+
+	step5：在block中，添加一个方法
+		HashTransactions()-->[]byte
+
+	step6:在blockchain中修改
+		CreateBlockChainWithGenesisBlock()
+		AddBlockToBlockChain()
+
+	step7：在cli中修改
+		AddBlockToBlockChain()
+		CreateBlockChain()
+
+
+2.当创建创世区块的时候，添加coinbase交易
+	step1：添加结构体：TxOutput
+		TxOutput{
+			Value int64
+			ScriptPubKey
+		}
+	step2：添加TxInput
+		//1.交易ID：引用的TxOutput所在的交易ID
+	TxID []byte
+
+	//2.引用的交易中的哪个txoutput,其实就是下标
+	Vout int
+
+	//3.输入脚本，也就是解锁脚本。暂时理解为用户名
+	ScriptSiq string
+
+	step3：修改Transaction
+		TxID
+		Vins []TxInput
+		Vouts []TxOutput
+
+
+	step4：在transaction中，添加
+		NewCoinBaseTransaction()
+		SetID()
+
+	step5：在创建创世区块的时候，添加coinbase交易
+		CreateBlockChainWithGenesisBlock()
+
+
+	
+3.添加转账的交易
+	send -from From -to To -amount Amount -- 转账交易"
+	./bc send -from "王二狗" -to "李小花" -amount "4"
+	./bc send -from '["王二狗","rose"]' -to '["李小花","jack"]' -amount '["4","3"]'
+
+		-from '["王二狗","rose"]'
+		-to '["李小花","jack"]'
+		-amount '["4","3"]'
+
+
+		json字符串--->json解析：[]string
+			-from [王二狗，rose]
+			-to [李小花，jack]
+			-amount [4,3]
+
+			form[0]-->to[0]-->amount[0]
+			form[1]-->to[1]-->amount[1]
+			...
+
+	step1:在cli中，修改addblock--->
+
+		json解析
+
+4.根据转账信息，创建交易，进行挖矿
+	step1：MineNewBlock(from,to,amount []string)
+		A：根据form，to，amount的信息，创建一个普通的交易
+
+		B：可以根据交易，创建Block，再将block区块存入到数据库
+
+	step2：在transaction中，添加创建普通交易的方法
+
+
+5.
+	余额：在cli中添加一个功能：
+		./bc createblockchain 
+		./bc send -from -to -amount
+		./bc printchain
+		./bc getbalance
+
+	step1:在blockchain中，添加一个GetBalance()
+
+	step2：在blockchian中，添加一个UnSpent() []*TxOutput
+		A://存储未花费的TxOutput
+			var unSpentTxOutput [] *TxOutput
+		//存储已经花费的信息
+		spentTxOutputMap := make(map[string][]int) // map[TxID] = []int{vout}
+
+		B：遍历数据库中每个区块，遍历该区块中每个transaction，
+			每个transaction中，遍历所有input
+				如果input和要查询的账户名对应，就将input的信息，存入到map中
+
+		C：遍历每个transaction中的所有的output
+			output和要查询的账户名对应，
+				output所在的交易id，和map中key是否对应
+				output所在的下标，和map中value值中记录下标是否相同
+
+				如果同时满足以上两条，就表示当前的output已经被花费了。
+				否则就没花，存入到未花费的数组中
+
+
+6.UTXO模型
+
+	转账：
+		UnSpent()-->[]*TxOutput
+			TxOutput：{value,用户名}
+
+		创建UTXO：所在的交易id，以及output的下标，output本身
+			未花费的交易输出	
+
+		UTXO：
+			txID,output所在的交易的id
+			index，output所在的交易中的下标
+			output
+	转账时：
+
+
+		创建的Input{txid}
+
+
+		step1：添加一个UTXO的结构体
+		step2：修改UnSpent() []*UTXO
+				utxo1：1314，0，output{2，二狗}
+				utxo1：6677，1，output{4，二狗}
+				utxo2：4455，0，output{6，二狗}
+		step3：二狗，转账给小花：5
+			查询二狗名下所有可以使用的UTXO
+				获取utxo中的output的value，累加，总额大于等于5
+
+			添加FindSpentableUTXOs()-->total,map
+				utxo1：1314，0，output{2，二狗}
+				utxo1：6677，1，output{4，二狗}
+
+				total:6
+
+
+				TxInput{1314,0,二狗}
+				TxInput{6677,1,二狗}
+
+				Output{5，小花}
+				Output{1，二狗}
+
+
+总结和作业：
+	1.交易：
+		简化版的实现：
+
+			通过转账，创建交易，创建新区块，添加到数据库中。
+
+
+	2.矿工节点：
+		从有效交易池中取交易：
+			100个
+
+			A：交易中：
+				Input--->output,该output所在的交易-->block
+
+			B：交易手续费的高低：
+
+
+	3.交易：
+		币的转账：
+		TxID，交易ID，交易hash
+		Vins []*Input
+		Vouts []*TxOutput
+
+
+	Output:输出（spent，unspent）
+		Value：10
+		锁定脚本：用户名
+			公钥锁定
+
+	Input:输入
+		TxID,与之对应的output所在的交易ID
+		Vouts，output的下标
+		解锁脚本：用户名
+
+			与公钥对应的私钥来解锁。-->数字签名
+
+
+		如何确定一个output是花费了还是未花费：
+			花费了：一定有一个input是引用了这个output，或者叫解锁了该output。
+			未花费：
+
+
+	交易的分类：
+		奖励产生：创世区块：coinbase交易
+			Output
+		转账产生：普通的交易：
+			Input
+			Output
+
+	通过代码实现：
+		1.功能cli	
+			createblockchain -address 
+			send -from From -to To -amount Amount
+			printchain
+			getbalance -address
+
+		2.createblockchain功能
+			创建创世区块：
+				首先判断数据库是否存在
+					如果数据库存在，直接结束方法即可
+					如果数据库不存在，
+						1.创建coinbase交易
+						2.创建创世区块
+						3.存入到数据库中
+
+
+		3.getbalance -address
+			查询余额：用户名
+				遍历数据库，获取所有的block
+				获取block中的每一个transaction，
+				获取每个transacion中的未花费output
+
+			算法：
+				map：存储input，表示已经花费
+				unspenttxOutputs：存储未花费的ouput
+
+				先遍历tx中的input
+					map[txid]-->[]int[index]
+
+				再遍历tx中的output
+					获取每个output，下标和map中存储的下标，
+						以及map中的txid和output所在的txid。
+
+					就表示该output已经被花费了。
+					否则就标记为未花费。
+
+				最后，将unspenttxOutputs中所有的output的value累加求和，就是该账户的余额
+
+		4.	send -from From -to To -amount Amount
+			from：账户下所有的output
+				utxo：txid，index，output
+			to
+			amount
+
+			根据转账的信息，创建普通的交易：
+				A：获取from下，本次转账所需要的utxo，total
+				B：根据utxo的信息，创建
+					Input，
+				C：创建Output，
+					转账，Output
+					找零：total- amount
+
+			再根据交易，创建新的区块，区块存入到数据库中。
+
+
+		5.一次转账，同时创建多比交易
+			转账：2笔
+			王二狗，转给李小花
+			李小花，转给rose
+
+			./bc send -from '["王二狗","李小花"]' -to '["李小花","rose"]' -amount '["3","4"]'
+
+tx1:二狗，转给小花3个币
+	会花费掉之前的output，也会产生新的output
+
+tx2：小花，转给rose4个币
+	可以使用tx1中新产生的未花费的output
+
+
+	新区块中：tx1，tx2
+
+		修改查找未花费的utxo
+			原来：直接查询数据库，block，txs，，，
+			在这之前，添加一个查找未打包的tx
+
+
+
+	作业：
+		代码实现：
+			在昨天的作业的基础上，添加代码，实现转账
+				1.在创建创世区块的时候，添加coinbase交易
+				2.新增功能，send表示转账
+					根据转账信息，产生交易，创建新的区块，存入到数据库中
+				3.扩展第2步，一次转账，存在多笔交易
+				4.增加一个功能，查询给定用户的余额。
+
+				如果设计思路和课堂讲解的不同，需要添加说明文档。
+
+
+2018年8月20日中午12点提交。。
+
+
+
+
+
+
+
+
+
