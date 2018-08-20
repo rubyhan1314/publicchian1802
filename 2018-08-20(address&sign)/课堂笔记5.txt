@@ -1,0 +1,356 @@
+上节课回顾：
+	交易：
+		通过转账，创建交易，创建区块，持久化存入到数据库中
+
+		交易：区块中最重要的部分之一
+			交易：
+				Transaction
+					TxID，交易的ID，也可以叫做交易hash。
+					Vins []*TxInput,交易中所创建的Input
+					Vouts []*TxOutput,交易中产生的Output
+
+
+			输入：Input
+
+			输出：Output：可以花费的输出：U,S
+				某个账户的可以操作的输出：
+					Value：钱的金额
+					锁定脚本：用户名表示
+
+				TxInput：
+					TxID,所对应的Output所在地交易id
+					Vout,所对应的output的下标
+					解锁脚本：户名名表示
+
+				TxOutput：
+					Value：
+					锁定脚本
+
+		功能1：send -from xxx -to xxx -amount xxx
+			转账信息--->创建交易(正常交易)
+				创建区块--->写入数据库
+
+		功能2：getbalance -address 
+
+
+		交易的类型：
+			CoinBase交易：创建创世区块：
+				系统的奖励：TxOutput：
+
+			普通交易：转账产生的交易：
+				TxInput
+				TxOutput
+
+		UTXO模型：
+			Unspent transaction output，未花费的交易输出
+
+			output，未花费，没有input和他对应。
+
+
+	A：查询余额
+		交易中 所有的output，未花费的output	
+			王二狗：	
+
+
+	B：转账：
+		王二狗 ，转账给 李小花 5个币
+
+		找出王二狗的所有的未花费output--->utxo
+			创建Input
+			创建tx
+			创建区块
+
+
+
+		UTXO:--->output
+			txID,output所在的交易id
+			index，output的下标
+			output，output本身
+
+
+
+./bc send -from '["wangergou"]' -to '["lixiaohua"]' -amount '["3"]'
+
+./bc send -from '["194jfjfhfi49jsjdjfdj04i4j"]' -to '["1jdjfjfjkgk303jfjff"]' -amount '["4"]'
+
+
+钱包：
+	安装了钱包的客户端的软件
+		都会产生一对秘钥：椭圆加密算法来实现
+		私钥：随机生成
+
+		公钥：私钥生成来的：[]byte 64
+			x轴：32byte
+			y轴：32byte
+
+		[]byte{202,128,10,43,89.....}
+
+		公钥，经过一定的算法，产生人类易读的数据：地址
+
+
+
+公钥：理解为银行卡的账号
+私钥：理解为账号对应的密码
+
+本堂课内容：
+	创建钱包-->私钥-->公钥-->地址：
+	数字签名，签名验证(验签):
+
+加密：
+	是将目标文本转换成具有不同长度的，可逆的密文。
+
+	对称加密
+	非对称加密：
+		椭圆加密：
+
+hash算法：散列数据，
+	特点：不可逆
+		文本-->hash算法后--->hash值
+
+	message diget(消息摘要)
+	md5：
+
+	sha256：用于将[]byte，散列为256bit的hash
+		256bit：
+			bit：一个0或一个1。
+			byte：字节，8个bit。
+				8个01码
+
+			16进制：0-9，A,B,C,D,E,F
+				0:0000
+				F:1111
+
+				4个bit表示
+
+		256bit：
+			32byte
+			64个16进制数
+
+	ripemd160：散列为160bit
+		160bit
+			20byte
+			40个16进制数
+
+
+		安装(翻墙)，go get "golang/x/crypto/ripemd160"
+
+
+编码和解码
+		Base编码：
+			Base64编码，就是一种基于64个可以打印的字符的表示二进制数据的方法。
+				26个大写，26个小谢，10个数字，以及两个符号：+，/
+
+			Base58编码，比特币专门提出的。--->Base58Check
+
+
+			A：前缀：固定的0x00
+
+			B：要编码的数据：data
+
+			C：校验码：获取前4位
+
+			
+			--->Base58编码后数据[]byte-->string
+
+生成地址：
+	step1：钱包：私钥-->公钥(原始公钥)
+
+	step2：进行hash：一次256，一次160
+		公钥哈希
+
+	step3：通过公钥hash，生成地址
+
+		前缀：0x00
+
+		要编码的数据：公钥哈希
+
+		--->sha256-->sha256--->结果，取前4位。获取校验码
+
+		前缀+公钥哈希+校验码--->Base58编码，得到地址
+
+
+		简单教研地址的有效性：
+			地址-->Base58的解码：
+				前缀+公钥哈希+校验码
+
+				前缀+公钥哈希--->sha256-->sha256-->生成校验码
+
+
+
+1.钱包：
+	Wallet的结构体：
+		钱包对象：
+			私钥，公钥
+
+step1：创建Wallet的结构体
+		私钥
+		公钥
+
+step2：创建一个方法：NewWallet() *Wallet
+	创建钱包对象：私钥，公钥
+
+step3：newKeyPair(),用于产生一对秘钥
+	应用椭圆曲线加密算法：先得到私钥
+
+	获取x轴，y轴的坐标值，拼接成公钥的[]byte
+
+	
+2.获取钱包对象对应 的地址：
+	wallet-->私钥，公钥
+		公钥-->地址
+
+	原始公钥：
+		sha256一次，ripemd160一次：公钥哈希
+
+	(前缀+公钥哈希)，2次sha256，取前4位：校验码checkSum
+
+	(前缀+公钥哈希+校验码)-->Base58编码：地址
+
+
+3.创建钱包集合：
+	map[地址] --> wallet
+
+	map[1CdpsiWiTYvnRGxXqSHF6RQgY9ZdwBupor] = wallet
+
+
+4.将钱包地址结合到项目
+	step1:cli 中添加一个功能：createwallet
+
+	step2：在cli中添加一个功能：getwalletlists
+		获取所有的钱包地址
+
+5.实现转账：
+	地址1--->地址2
+
+
+
+6.数字签名：
+	交易：
+		挖矿：区块中存储了大量的交易。
+			保证交易的有效性
+
+		每一笔交易：一个地址向另一个地址转账。
+
+			脚本：类似一套规则，约束了收币方，满足一定的规则，才能够花掉锁定的资产。
+
+		交易的本质：包含了一组输入和输出的数据结构，"转账记录"
+
+		输入中：解锁脚本
+			按理用私钥解锁，--->数字签名：
+
+
+		输出中：锁定脚本
+			公钥锁定
+
+
+		10个币，公钥锁定(公开的)
+
+
+生成签名：
+	私钥 + 数据 --->生成数字签名
+
+验证签名：
+	
+	私钥 + 数据 + 公钥
+
+
+7.更新Input和Output的结构
+	step1：Output：
+	step2：Input：
+
+	step3：Input和Output中UnlockWithAddress()
+
+	step4：修改Transaction中：
+		NewCoinBaseTransaction()
+		NewSimpleTransaction()
+
+	step5：修改printchain()
+
+	step6：
+
+8.实现签名：
+	创建交易的时候：生成签名
+
+	创建区块的之前：进行交易的签名验证
+
+生成签名：
+	私钥+要签名的数据
+
+
+
+	Transaction：
+		TxID
+		Vins []TxInput
+		Vouts []TxOutput
+
+	TxOutput:
+		Value
+		公钥hash
+	TxInput:
+		TxID
+		Vout
+		Sign：数字签名
+		公钥
+
+
+		ecdsa.Sign()
+		ecdsa.Vertify()
+
+
+	数字签名：
+		逻辑上理解：私钥 + 要签名的数据(钱哪来，钱去哪)
+		数据类型：[]byte,
+			通过椭圆曲线加密算法：r和s数据
+				r + s -->[]byte,签名
+
+
+总结和作业：
+1.创建钱包和有效的地址
+	钱包：
+		私钥--->公钥[]byte
+		公钥--->公钥哈希
+		公钥哈希--->版本号 + 公钥哈希-->校验码
+				--->Base58编码：地址
+
+	钱包进行序列化：
+		dat文件进行存储
+
+	私钥--->公钥：
+		golang语言，椭圆曲线加密算法实现
+			私钥-->公钥
+
+	公钥-->地址
+		step1：根据公钥获取公钥哈希
+			公钥-->sha256-->160
+
+		step2：获取验证码：
+			版本号+ 公钥hash
+				两次sha256，取前4位-->checkSum
+		step3：版本号+公钥hash+校验码
+			-->base58编码，得到地址
+
+
+2.转账时，创建交易，进行签名和验证
+	转账产生交易：
+		数字签名：私钥 + 要签名的数据
+
+		签名验证：和私钥对应的公钥：验证私钥 + 数据
+
+
+		要签名的数据：
+			将要签名的transaction备份：一部分数据
+				txInput,txoutput
+
+		签名，验签：
+			ecdsa.Sign(privateKey,data)-->r,s
+			ecdsa.Vertify(公钥，data，r，s)-->bool
+
+作业：
+	1.在项目中添加钱包和地址
+	2.在转账的时候，添加数字签名和签名验证
+	3.思考题？当前的项目：一次转账产生多笔交易？
+
+
+
+
+
