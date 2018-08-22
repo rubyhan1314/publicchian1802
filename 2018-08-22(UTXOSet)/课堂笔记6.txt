@@ -1,0 +1,443 @@
+上节课回顾：
+1.钱包：
+	私钥，公钥
+	地址
+
+	安装钱包：
+		产生一个私钥：椭圆加密算法实现
+			本质：随机数
+
+			公钥：和对应的私钥，一一对应的。
+				x轴：32byte，y轴：32byte
+
+				64byte
+
+			go语言：对椭圆加密算法：
+				私钥：
+				公钥：[]byte
+				签名：sign
+				验签：verfity
+
+
+	A：创建钱包对象：
+		私钥和公钥
+		创建一对秘钥：
+
+
+	B：公钥哈希
+		公钥，一次sha256算法，一次ripemd160算法-->公钥哈希
+
+
+	C：生成地址：
+		step1：(版本号+公钥哈希)
+		step2：产生校验码：
+				(版本号+公钥哈希)，进行双hash(2次256hash算法)
+
+				结果获取前4位-->checkSum
+
+		step2：(版本号+公钥哈希+checkSum)
+			Base58编码-->地址[]byte,string
+
+		Base58,编码格式
+			Base64-->Base58校验
+
+
+			Base58-->解码
+				(版本号+公钥哈希+checkSum)-->公钥哈希
+
+
+	钱包：
+		私钥-->公钥(原始)-->公钥哈希-->地址
+
+		地址--->公钥哈希
+
+
+	钱包的持久化：
+		钱包集合：map[address]-->wallet
+			wallet对象-->私钥
+
+
+		内存--->持久化
+			wallets.dat文件：
+				每当创建一个钱包对象：
+					map整体重新写入到本地文件。
+
+				地址1-->钱包对象1--->map
+					map:长度，1
+
+					序列化后-->写入本地文件
+
+				地址2-->钱包对象2-->map
+					map:长度，2
+						地址1-->钱包1
+						地址2-->钱包2
+
+					ioutil.Write(),覆盖写入
+
+					io读写
+
+					File文件操作
+
+					seek(),定位
+						断点续传
+
+						模式：append，
+
+
+2.数字签名，验签
+	交易：
+		txID
+		inputs
+		outputs
+
+		TxInput:
+			txID，vout，sign，原始公钥
+
+		TxOutput：
+			Value，公钥哈希
+
+
+	签名：
+		私钥 + 数据 --> 签名
+
+	验签：
+		公钥 + 私钥(r,s) + 数据
+
+		数据：
+			tx：--->拷贝，副本(Input,output)
+
+
+本堂课内容：
+	功能：CLI
+		createwallet 创建钱包
+		getaddresslist 获取钱包地址
+		createblockchain -address 创建创世区块
+		send -from 从哪 -to 到哪 -amount 金额
+		printchain
+		getbalance -address
+
+
+1.签名
+	send -from '["王二狗"]' -to '["李小花"]' -amount '["3"]'
+
+	send -from '["王二狗","李小花"]' -to '["李小花","jack"]' -amount '["3","4"]'
+
+签名：
+	签名某个交易：
+		交易中：txid，inputs，outputs
+			input{txid，vout，sign，公钥}
+
+			未花费的output：
+
+		1.找txid-->交易
+			找数据库中，block，tx
+
+		2.A:先找未打包的交易，B：找数据库的block中tx
+
+
+
+2.奖励：
+	挖矿成功后的奖励：
+		交易：CoinBase交易：
+			没有Input
+			Output{10}
+
+
+	创世区块：
+		CoinBase交易
+
+	转账-->普通交易-->创建Block-->持久化存入block.db
+
+
+	CLI_send
+		实现转账：
+			1.根据转账信息：
+				send -from '["王二狗"]' -to '["李小花"]' -amount '["3"]'
+
+			创建普通的交易：txId，input	s，outputs
+				包含了签名
+
+			2.验签
+
+			3.根据普通的交易，创建新的区块block
+
+			4.新block存入到数据库中
+
+		添加奖励：奖励给转账的人
+
+
+			send -from '["王二狗","李小花"]' -to '["李小花","jack"]' -amount '["3","4"]'
+
+
+王二狗
+创建的钱包地址：1PBAobLzgkzxVFFeiawnhkiX3bUgaHBe5d
+
+李小花
+创建的钱包地址：125igahWCW3UAQsbCyDxNwEA1tq4yn9TLK
+
+Rose
+创建的钱包地址：16FhHLktqPUuZv5eQFPDQBvCKtddAa8BPc
+
+
+王二狗：10个币
+
+王二狗转账给李小花：4个币
+
+	王二狗：6+10=16
+	李小花：4
+
+李小花转账给rose：2，王二狗转给李小花：8
+	rose：2
+	王二狗：8
+	李小花：20
+
+数据库中：
+	创世区块：
+		CoinBase交易
+			txID:1234
+			Output{10,王二狗}
+
+	block1：
+		Tx：二狗转账小花
+			txid:2234
+			Input{1234,0,王二狗}，
+			Output{4，李小花}
+			Output{6,王二狗}
+
+		CoinBase交易，奖励
+			txid：3234
+			Output{10,王二狗}
+
+	block2：
+		tx：小花，转给rose：2
+			txid：4234
+			Input{2234，0，李小花}
+			Output{2，rose}
+			Output{2，李小花}	
+
+		tx：二狗转给小花：10
+			txid：5234
+			Input{3234，0，二狗}
+			Output{8，小花}
+			Output{2，二狗}
+
+		coinbase交易：奖励
+			txid：6234
+			Output{10，小花}
+
+
+
+
+
+
+
+
+	send -from '[wangergou]' -to '["lixiaohua"]' -amount '["0"]'
+
+
+	验证地址的有效性：
+		IsAddressValid(address)-->bool
+			address-->base58解码
+				前缀+公钥哈希+校验码
+
+
+block：
+	height，hash，prevhash，。。。。
+	txs [] *Transaction
+
+
+5000个区块：所有的区块
+转账：
+	王二狗，转账给李小花：5个币
+
+
+	UTXOSet：
+
+	blockchain.db
+		blocks的表：bucket
+			区块的hash，区块的数据
+
+		utxoset的表：bucket
+			将blocks中所有的区块的tx，找出所有的utxo(未花费的output)
+
+			txID，交易中所有的未花费的utxo作为值
+				TxOutputs
+					utxos []*UTXO
+
+	查询余额：
+	转账：
+
+
+1.优化查询余额：
+	step1：提供一个TxOutputs的结构体
+		TxOutputs
+			UTXOs []*UTXO
+
+	step2：在blockchain中，添加一个方法：FindUnspentUTXOMap()
+		为了找出所有区块中的所有交易里的，未花费的utxo
+			map[txid] = txoutputs
+				txoutputs
+
+	step3：增加一个UTXOSet的结构体
+
+	step4：在UTXOSet文件中，增加一个方法：
+		ResetUTXOSet()
+			调用FindUnspentUTXOMap()，找出所有的未花费utxot
+			存入到数据表：utxoset表
+
+	step5：在UTXOSet中，添加一个UTXOSet结构体对象的方法：
+		getBalance(address)
+			utxoset表
+
+		添加一个方法：FindUnspentUTXOsByAddress()
+
+
+
+2.转账
+	step1：先在UTXOSet中添加一个方法FindSpentableUTXOs(),用于查找本次转账要使用的utxo，从utxoset表
+		转账创建交易：
+			根据转账的信息，找本次转账可以使用的utxo
+				原来：遍历blocks，每个tx，utxot
+				优化：utxoset表，
+					txid， txoutputs
+							UTXOS
+
+
+	step2：转账成功后，更新utxoset表
+		删除本次转账使用了的utxo，
+		添加本次转账新产生的utxot。
+
+		在UTXOSet中添加一个update
+
+
+创建创世区块：
+	二狗：10个
+	utxoset表：
+		utxo：二狗：10个
+
+转账：
+	二狗，小花：4
+	output：4，小花
+	output：6，二狗
+
+	output：10，二狗，，，，spent
+
+
+	重置：reset
+
+
+转账：二狗转给小花：3，小花转给rose：5个币
+	tx：
+		input{txid，0，二狗}
+		output{3，小花}
+		output{7，二狗}
+
+	tx：
+		input{txid，0，小花}
+		input{txid，0，小花}
+		output{5，rose}
+		output{2，小花}
+
+	coinbasetx
+
+
+查询余额：
+	utxoset表中：
+
+
+
+
+155-->169:4
+	155:16
+	169:4
+	1h:
+
+169-->1h:3
+155->169:9
+	155:7
+	169:20
+	1h:3
+
+
+
+3.MerkleTree
+
+
+
+
+总结和作业：
+
+1.奖励
+	每当产生一个新的区块，都会给系统的奖励：
+		CoinBase交易实现：
+
+	转账的时候，奖励给了第一个转账的人。。
+
+2.UTXOSet集，进行程序的优化
+	表：utxoset
+		存储整个block中的所有的未花费的utxo
+
+
+		原来：遍历整个block，每个tx，output
+
+	
+
+		utxo--->utxoset表
+			txid --> txouputs
+						UTXOs []UTXO
+
+			9527 --> txoutpus
+				utxo:
+					txid,index,output
+
+				output:
+					value,公钥哈希--->地址
+
+
+
+	查询余额：
+	转账：
+
+		utxoset：
+			reset：
+			转账成功后
+				update：
+					获取最后一个区块
+						根据input，操作utxoset表，删除本次转账被花费的utxto
+
+						根据map，操作utxoset表，将map中的数据，存入到utxoset表即可。
+
+
+3.Merkle树：
+	spv
+
+	每个区块中的所有的交易，两两哈希后，得到一个最终hash值。(merkle root)
+
+
+
+
+作业：
+1.修改代码，数字签名和验签，多笔交易
+
+
+
+2.在代码上添加奖励
+	每个区块奖励的交易，在交易列表(txs)的第一笔交易
+
+	printchain，遍历数据库
+		block-->txs
+			txs[0]-->奖励的coinbase交易
+			其余的才是转账的交易
+
+3.代码实现:通过UTXOSet集优化程序
+	查询余额
+	转账，更新
+
+4.Merkle树的生成的代码
+	递归的方式生成merkle树根--->pow中
+
+2018年8月24日中午12点前。
+
+
+
+	
