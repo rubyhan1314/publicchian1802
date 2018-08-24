@@ -1,0 +1,396 @@
+上节课回顾：
+优化：
+	查询余额：
+	转账：
+
+	需要获取到区块中交易里未花费output
+		output-->utxo,
+
+
+	blockchian.db
+		blocks表：bucket
+			key：区块的hash
+			value：区块的本身[]byte
+
+
+	blocks表
+		block0，block1，block2，block3。。。
+		transaction
+			input
+			output
+
+		output-->utxo
+
+
+
+Block：
+	Height，Hash，PrevHash，TimeStamp，Nonce，Txs：交易
+
+Transaction：
+	TxID：交易id
+	Vins []*TxInput
+	Vouts []*TxOutput
+
+		coinbase交易：
+			创建创世区块：coinbase
+			挖矿(产生新的区块)：coinbase，奖励
+
+		普通交易：转账
+			地址1，转账到地址2
+
+TxInput:
+	TxID：对应的output所在的交易id
+	Vout：该output的下标
+	Sign
+	原始公钥
+
+TxOutput：
+	Value金额
+	公钥哈希，锁定脚本
+
+
+UXTO:-->output
+	txid
+	index
+	output
+
+
+	优化：
+		reset：
+			遍历整个数据表blocks表，查找所有的utxo-->存储到一个单独的表：utxoset表
+
+		余额，转账
+			utxoset表：
+				key：txid
+				value：txoutputs
+					序列化-->反序列化
+
+
+TxOutputs
+	UTXOs []UTXO
+
+
+			key：txID
+			value：[]*UTXO
+
+
+
+		utxo-->utxoset表
+			余额：utxo
+
+			转账：utxo：
+					花费掉表中的utxo，产生了新的utxo
+				更新：update
+					最后一个区块：
+						txs：input，output
+
+
+		挖矿成功：奖励
+
+			bit：目标难度--->10分钟产生一个区块
+
+			算力
+
+		转账：MineNewBlock()
+
+			创建交易：txs []
+				
+
+
+
+			创建区块
+			持久化
+
+
+	钱包节点-->转账-->创建交易
+
+	主节点：--->发给矿工节点
+
+	矿工节点：接收到这些交易后，存储到本地的有效交易池中：
+		。。。。
+
+		交易-->Merkle
+		nonce----->hash
+
+		挖矿-->新的区块
+
+	发送给主节点：
+
+
+本堂课内容：
+	网络：
+
+
+	nonce：
+
+
+blockchian_3000.db
+Wallet_3000.dat
+
+
+主节点：端口3000来表示
+	step1：主节点中创建一个钱包地址：
+		地址0：10个token
+		Wallet_3000.dat
+
+	step2：根据地址0创建创世区块
+		blockchain_3000.db
+
+	step3：备份一下blockchain_3000.db
+				blockchain_genesis.db
+
+		创世区块：block0
+
+钱包节点：端口：3001
+	step4：备份blockchain_genesis.db
+			block_3001.db
+
+	step5：创建几个钱包地址：
+			地址1，地址2，地址3
+
+
+------------------
+step6：
+	主节点：转账：
+		地址0-->地址1：4个token
+		创建交易-->创建区块-->存入到数据库：
+			blockchain_3000.db
+				block0--->block1
+
+		查询余额：
+			地址0：6+10-->16
+			地址1：4
+
+step7：
+	钱包节点下：
+		查询余额：
+
+
+
+动态的配置环境变量：端口-->nodeid
+	3000，主节点
+	3001，钱包节点
+	3002，矿工节点
+
+仅针对一个终端窗口有效：
+	export 变量名=变量值
+	export NODE_ID=8888
+
+	打开多个终端窗口，配置不同的nodeid，表示不同的节点
+
+
+1.设置NODE_ID
+	export NODE_ID=3000
+
+
+	先在cli中，设置NODE_ID的端口号的值
+		nodeID := os.Getenv("NODE_ID")
+
+
+2.根据node_id修改程序：
+step1：修改数据库的名字：
+	const DBName  = "blockchain_%s.db"
+
+step2：修改CreateBlockChain(address,nodeid)
+step3：修改dbExists(dbname)
+step4：修改GetBlockChainObject(nodeid)
+
+
+step5：修改CLI，getbalance(nodeid)
+
+step6：修改CLI，printchain(nodeid)
+
+step7：修改CLI，testmethod(nodeid)
+
+step8：修改const walletsFile = "Wallets_%s.dat"//存储钱包数据的本地文件名
+
+step9：修改CLI，createWallet(nodeid)
+	修改NewWallets(nodeid)
+	修改CreateNewWallet(nodeid)
+	修改saveFile(nodeid)
+
+step10：修改CLI，getaddresslists(nodeid)
+	修改：GetAddressLists(node)
+
+step11：修改CLI，send(from,to,amount,nodeid)
+	修改：MineNewBlock(from,to,amoutn,nodeid)
+	修改：NewSimpleTransaction(nodeid)
+
+
+
+
+3.实现节点间的数据同步
+	step1：cli中，startnode
+	step2：创建server.go文件
+		startnode()
+
+			nodeAddress:=节点自己的地址：
+				localhost:3001
+				localhost:3000
+				localhost:3002
+
+			if 当前的节点不是主节点，那么向主节点发送消息
+
+	step3：创建Version的结构体：
+			version
+			bestheight：区块的最高高度
+			addrform：自己的地址
+
+	step4：在blockchian中，增加一个方法：
+		GetBestHeight()-->获取自己的区块的最高高度
+
+主节点：
+	block0，block1
+
+钱包节点：
+	block0
+
+
+	钱包节点启动后-->向主节点发送版本信息：
+		自己的区块的最高高度：0
+
+
+
+节点之间的数据传递：[]byte
+	自己规定：前12个字节，是命令command
+
+	结构体对象-->序列化[]byte
+
+
+钱包节点：10个
+	
+主节点：20个
+
+钱包节点，向主节点索要信息
+
+主节点：
+	20个区块信息-->区块的hash-->
+
+
+主节点：
+	blockchain_3000.db
+		block0,block1
+
+钱包节点：
+	blockchain_3001.db
+		block0
+
+
+step1:启动主节点:3000
+step2：启动钱包节点：3001
+
+step3：startnode()
+	if当前的节点是钱包节点-->向主节点发送版本信息
+	sendVersion(version:1,bestheight:0,钱包节点地址)
+step4：接收到了钱包节点发来的数据：
+	handleVersion()
+		version{1,0,钱包节点地址}
+		获取自己的最后一个区块的高度：1
+
+		发送版本给钱包节点
+		sendVersion{version:1,bestheight:1,主节点地址}
+
+step5：钱包节点：
+	handleVersion()
+		version{1,1,主节点地址}
+		获取自己的高度：0
+
+		发送了一个getblock
+		sendGetBlocks(钱包节点地址)
+
+step6：主节点接收到了钱包节点发来的数据
+	handleGetBlocks()
+		获取自己的区块的信息，发送给对方
+
+		sendInv{主节点地址，数据类型：block/tx,[][]hash}
+									block0,block1
+
+step7：钱包节点：接收
+	handleInv()
+		Inv{主节点地址，block，[][]}
+
+		sendGetData{地址地址，block，block0的hash}
+
+step8：主节点：
+	handleGetData()
+		根据block0的hash，获取block的数据
+		sendBlock()
+
+step9：钱包节点：
+	handleBlockData()
+		block0
+
+		bc.AddBlock(block0)
+
+
+
+
+简化实现：block0,block1,block2,block3,block4..
+
+	对方的高度：1
+	我自己的高度：0
+
+	block0,block1
+
+
+
+执行过程：
+step1：主节点
+	创建的钱包地址：18jAUUS7bLbbpRQZxW1KthBpn1Vw2qm7sA
+
+step2：主节点：创建创世区块
+
+step3：钱包节点
+	创建的钱包地址：19iC2HcSF6b12oqra9bHgfx8fBMEcnF57T
+
+step4：备份：blockchian.db
+
+
+
+
+
+总结和作业：
+
+节点之间的数据同步：
+step1：主节点：
+	blockchain_3000.db
+		7个block
+step2：钱包节点：
+	blockchain_3001.db
+		4个block
+
+step3：钱包节点-->主节点发送版本信息：4
+
+step4：主节点-->7
+	发送版本信息给钱包节点
+
+step5：
+	钱包节点，接收到版本信息后：
+		索要对方的信息
+
+step6：
+	主节点：
+		将自己的区块信息发送给对方
+
+step7：根据对方发来的信息，循环下载对应的区块
+	存入到自己的数据库中
+
+作业：
+	代码实现：
+		1.通过端口表示节点id，实现多个节点之间的数据交互。
+
+
+		2(选做)
+		实现矿工节点挖矿的过程：
+			有效交易池
+
+			奖励
+
+			挖矿
+
+
+
+
+
+
+
