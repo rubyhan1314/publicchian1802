@@ -1,0 +1,337 @@
+上节课回顾：
+1.虚拟机：
+	otto，go语言的
+		javascript编写智能合约
+
+		go语言中
+			http监听端口
+
+			接收到前台页面传来的js内容
+
+			启动otto虚拟机
+				执行js代码：智能合约
+
+	EVM：
+		Solidity语言：
+
+
+	投票：
+	众筹：
+
+2.智能合约：
+	
+
+
+本堂课内容：
+1.token
+	发币
+
+2.web3进行合约调用
+
+
+1.Token的代币合约
+	发币
+	转账
+	交易
+
+
+
+以太坊中定义了一个规范，代币合约，必须遵守这个规范。
+EIP20
+
+打开github，搜索ethereum
+
+1.name,名字
+
+2.symbol，简称
+
+BitCoin
+	BTH
+Ethereum
+	ETH
+
+KongYiXueYuan
+	KYXYB
+
+RubyToken
+	RTH
+
+WangErGouToken
+	
+
+18
+
+1000000000000000000 0000
+
+
+8
+100000000000
+	1000
+
+
+账户1
+	地址
+	发币：1000
+
+
+账户2
+	地址
+		5
+
+账户1
+	地址：0x1314
+
+approve()
+	_spender,账户2，地址：0x9988
+	_value,100
+
+
+
+
+转账：
+	转账人
+	接收人
+
+
+transfer：转账人是调用者
+	主动给别人转账，
+
+transferFrom：接收人事调用者
+	_from,转账人，张三
+	_to，接收人，我
+	_value
+
+approve()
+	张三调用
+		_spender,我李四
+
+
+allowance()
+	_owner，张三
+	_spender，李四
+
+
+//step1:定义接口
+contract EIP20Interface{
+	//获取token的名字，比如"KongYiXueYuan","RubyToken","BitCoin"
+    function name() view returns (string name);
+    //获取token的简称，比如"KTXYB","RTH","BTH"
+    function symbol() view returns (string symbol);
+    //获取小数位，以太坊的decimals为18
+    function decimals() view returns (uint8 decimals);
+    //获取token发布的总量，比如 EOS 10亿
+    function totalSupply() view returns (uint256 totalSupply);
+    //获取_owner地址的余额
+    function balanceOf(address _owner) view returns (uint256 balance);
+    //转账，调用者向_to，转账，_value个token
+    function transfer(address _to, uint256 _value) returns (bool success);
+    //转账，从_from,转账到_to，_value个token
+    function transferFrom(address _from, address _to, uint256 _value) returns (bool success);
+
+    //调用方， 允许_spender,从自己地址上转出_value，个token
+    function approve(address _spender, uint256 _value) returns (bool success);
+    //自己_owner查询_spender这个地址可以转走自己的多少个token
+    function allowance(address _owner, address _spender) view returns (uint256 remaining);
+
+
+    //转账的时候必须要调用的事件
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
+    //成功执行approve方法后调用的事件
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+}
+	
+
+
+
+	//step2:定义实现类
+
+	//step3:定义状态变量，接收创建合约时，传入的数据：代币的名称，简称，小数位，总量
+	string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totalSupply;
+
+    //step4：提供构造函数
+
+    //step5:部署合约后，一次性发布给合约部署者。
+    //其他人转账后，拥有者地址，有多少个币，map[address]-->uint256
+
+
+
+    张三，账户地址：0x1314
+    	GGTH：1000
+
+    张三，李四转账：500
+
+    	张三0x1314：500
+    	李四0x7788：500
+
+    	 require();//条件不满足，抛出异常，满足就继续向下执行
+
+    	 if 条件
+    	 	throw
+
+    	 张三，允许李四从自己账户转出5
+    	 张三，允许王五从自己账户转出8
+
+    	 rose，允许xxx从自己账户转出10
+
+
+
+
+
+
+0xca35b7d915458ef540ade6068dfe2f44e8fa733c
+0x14723a09acff6d2a60dcdf7aa4aff308fddc160c
+//记录每个地址允许别人从自己账户转走金额的map
+mapping(address1 =>mapping(address2=>uint256) )allowances;
+
+//step8:调用方， 允许_spender,从自己地址上转出_value，个token
+    function approve(address _spender, uint256 _value) returns (bool success){
+        /*
+        当前调用者，允许_spender账户从地址地址上
+        如果是多次调用，
+        */
+
+        allowances[msg.sender][_spender] = _value;
+        //触发事件
+        Approval(msg.sender,_spender,_value);
+
+        return true;
+    }
+
+
+张三地址调用方法
+	表示允许李四从自己的账户转走50个token
+
+	mapping[张三][李四] = 50
+
+
+transferFrom：_from,_to,_value
+	李四调用方法
+
+	李四从张三地址转走30
+
+
+	//获取_from地址允许_to地址转走的金额
+    uint256 allowan = allowances[_from][_to];
+    //_from账户余额大于等于要转走的金额
+    //要转走的金额，小于等于允许转走金额
+    //从哪转账：to是调用者
+
+        require(_value > 0 && balances[_from] >= _value && _value <= allowan && _to == msg.sender && balances[_to]+_value > balances[_to]);
+        
+        
+        allowances[_from][_to] -= _value;
+        
+        balances[_from] -= _value;
+        balances[_to] += _value;
+        
+        Transfer(_from,_to,_value);
+        return true;
+
+
+10000000000000000000000
+
+0xca35b7d915458ef540ade6068dfe2f44e8fa733c
+
+0x14723a09acff6d2a60dcdf7aa4aff308fddc160c
+
+设置：
+	账户1，允许账户2，转走多少币
+
+
+
+
+我的钱包中
+	账户1
+		0x7149d280aa37403ee1cab6a70b7431700ce18afa
+	账户2
+		0x91691c657376edcaff26490217e810fbce6510f8
+
+		10000
+			GGTH
+
+	账户3
+		0xd975f21904752bde92947702dd99f6488fe8f8bb
+
+发币的合约地址
+	0xbabc3065ef59ba0a48b1b15560b768b0f6b865f3
+
+
+
+
+
+web3调用合约
+	调用合约中的方法
+
+	otto：执行js编写的合约，进行合约调用
+		sayHi(),sayHello()
+
+
+Dapp的开发
+
+1.nodejs
+	IDE工具：
+		可以安装Visual Studio Code工具，编写nodejs代码
+		(不安装，继续使用goland也可以，需要设置js版本)
+
+2.安装node环境：
+	A：打开node官网，下载安装包
+		https://nodejs.org/en/download/
+	B：双击下一步
+	C：打开终端
+		输入：
+			node -v
+			npm -v
+
+
+
+
+
+
+总结和作业：
+1.发布自己的代币
+	建议名称尽量和自己的名字相关
+
+2.给我转币
+	币的名称
+	币的简称
+	币的总量
+	转给我：
+		哪个地址，多少金额
+
+
+3.将你的代币合约地址给我
+
+8月31日中午12点提交
+	
+
+EIP20接口
+	方法的描述，仔细阅读
+
+接口实现
+	
+
+部署
+	测试网：
+		发币：哪个账户部署智能合约，那么账户地址
+
+		转账交易
+
+
+web3实现，API调用智能合约
+	。。。。。。
+
+
+
+
+
+
+
+
+
+
+
+
+
